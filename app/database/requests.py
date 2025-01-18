@@ -2,7 +2,7 @@ import os
 import logging
 
 from sqlalchemy import select, func, update
-from app.database.models import async_session, User, Pet, Like, Favorite
+from app.database.models import async_session, User, Pet, Like, Favorite, Proposal
 
 
 async def set_user(tg_id, username):
@@ -221,6 +221,13 @@ async def count_of_favorites(tg_id):
             logging.error(f'Ошибка при подсчете лайков пользователя: {e}')
 
 
+async def get_all_proposals():
+    """Выводит все предложения"""
+    async with async_session() as session:
+        proposals = await session.execute(select(Proposal))
+        return proposals.scalars().all()
+
+
 async def get_show_false():
     """Выводит всех питомцев с show = False"""
     async with async_session() as session:
@@ -238,3 +245,18 @@ async def change_pet_true(pet_id):
         except Exception as e:
             await session.rollback()
             logging.error(f"Ошибка при изменении значения show для питомца с ID {pet_id}: {e}")
+
+
+async def add_proposal(tg_id, message):
+    """Функция добавления предложения в базу данных"""
+    async with async_session() as session:
+        try:
+            user = await session.scalar(select(User).where(User.tg_id == tg_id))  # type: ignore
+            if user:
+                session.add(Proposal(user_id=user.id, username=user.username, message=message))
+                await session.commit()
+                logging.info(f'Пользователь с ником {user.username} добавил предложение!')
+            else:
+                logging.warning(f'Пользователь с tg_id {tg_id} не найден')
+        except Exception as e:
+            logging.error(f'Ошибка при добавлении предложения: {e}')

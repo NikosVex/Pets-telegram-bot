@@ -55,6 +55,15 @@ class Favorite(Base):
     favorited: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
+class Proposal(Base):
+    __tablename__ = 'proposals'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    message: Mapped[str] = mapped_column(String(400))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'))
+    username: Mapped[str] = mapped_column(String(35))
+
+
 async def async_main():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

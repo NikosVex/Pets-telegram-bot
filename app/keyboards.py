@@ -1,11 +1,13 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
-from main_bot import admins_id
+from app.handlers.admin import admins_id
+
 
 def main_keyboard(user_id):
     kb_list = [
         [KeyboardButton(text='🐱 Смотреть питомцев'), KeyboardButton(text='➕ Добавить питомца')],
-        [KeyboardButton(text='🏅 Рейтинг'), KeyboardButton(text='👤 Мой аккаунт')]
+        [KeyboardButton(text='🏅 Рейтинг'), KeyboardButton(text='👤 Мой аккаунт')],
+        [KeyboardButton(text='🗳 Предложка')]
     ]
     if user_id in admins_id:
         kb_list.append([KeyboardButton(text='⚙️ Админ панель 📄')])
@@ -52,16 +54,6 @@ def my_account_keyboard(user_id):
     ])
 
 
-exit_search_pet = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Отменить поиск', callback_data='exit_search_pet')]
-    ])
-
-
-exit_pet_add = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Отменить добавление', callback_data='exit_pet_add')]
-    ])
-
-
 def delete_pet(pet_id):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text='❌ Удалить питомца', callback_data=f'delete_pet_{pet_id}')]
@@ -92,7 +84,18 @@ def delete_favorite_check(pet_id):
     ])
 
 
-def admin_keyboard(pet_id):
+exit_button = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Отменить', callback_data='exit')]
+    ])
+
+
+admin_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='🗳 Предложения', callback_data='admin_proposal')],
+    [InlineKeyboardButton(text='🐱 Питомцы', callback_data='admin_pet')]
+])
+
+
+def admin_check_pets_keyboard(pet_id):
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text='✅ Добавить', callback_data=f'true_{pet_id}'),

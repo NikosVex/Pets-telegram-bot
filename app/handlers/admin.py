@@ -7,27 +7,56 @@ import app.database.requests as rq
 
 router = Router()
 
+admins_id = [1774953059, 2026368571, 2079877089]
+
 
 @router.message(F.text == '⚙️ Админ панель 📄')
 async def admin_handler(message: Message):
+    user_id = message.from_user.id
+    if user_id in admins_id:
+        await message.answer('Выберите пункт в Инлайн-клавиатуре ⌨️', reply_markup=kb.admin_keyboard)
+    else:
+        await message.answer('У вас нет полномочий админа!', reply_markup=kb.main_keyboard(user_id))
+
+
+@router.callback_query(F.data == 'admin_proposal')
+async def admin_proposal_handler(callback: CallbackQuery):
     try:
-        user = message.from_user.id
+        user = callback.from_user.id
+        if user:
+            proposals = await rq.get_all_proposals()
+            if proposals:
+                await callback.message.answer('Предложения:')
+                for proposal in proposals:
+                    await callback.message.answer(f'Предложение от пользователя <b>{proposal.username}</b>: \n\n'
+                                                  f'{proposal.message}', parse_mode='html')
+            else:
+                await callback.message.answer('Пока что нет никаких предложений!')
+    except Exception as e:
+        await callback.answer('Ошибка при отображении предложений!')
+        logging.error(f'Ошибка в admin_proposal_handler: {e}')
+
+
+@router.callback_query(F.data == 'admin_pet')
+async def admin_pet_handler(callback: CallbackQuery):
+    try:
+        user = callback.from_user.id
         if user:
             pets_to_check = await rq.get_show_false()
             if pets_to_check:
-                await message.answer('Питомцы на проверку:')
+                await callback.message.answer('Питомцы на проверку:')
                 for pet in pets_to_check:
-                    await message.answer_photo(
+                    await callback.message.answer_photo(
                         photo=FSInputFile(pet.photo_path),
                         caption=f'Имя: <b>{pet.name}</b>\nПорода: <b>{pet.breed}</b>\n'
                         f'Комментарий: <b>{pet.additionally}</b>\n\n<b>Добавить питомца?</b>',
-                        reply_markup=kb.admin_keyboard(pet.id), parse_mode='html'
+                        reply_markup=kb.admin_check_pets_keyboard(pet.id), parse_mode='html'
                     )
             else:
-                await message.answer('Сейчас нет питомцев на проверку!')
+                await callback.message.answer('Сейчас нет питомцев на проверку!')
     except Exception as e:
-        await message.answer('Ошибка при отображении питомцев, которые должны пройти проверку!!')
-        logging.error(f'Ошибка в admin_handler: {e}')
+        await callback.message.answer('Ошибка при отображении питомцев, которые должны пройти проверку!')
+        logging.error(f'Ошибка в admin_pet_handler: {e}')
 
 
 @router.callback_query(F.data.startswith('true_'))

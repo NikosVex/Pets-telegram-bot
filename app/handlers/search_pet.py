@@ -24,7 +24,7 @@ async def search_pet_handler(message: Message):
 async def search_pet_username_handler(message: Message, state: FSMContext):
     await state.set_state(SeacrhPet.username)
     await message.answer('Введите имя пользователя, у которого хотите посмотреть питомцев',
-                         reply_markup=kb.exit_search_pet)
+                         reply_markup=kb.exit_button)
 
 
 @router.message(SeacrhPet.username)
@@ -52,7 +52,7 @@ async def show_pets_username_handler(message: Message, state: FSMContext):
 @router.message(F.text == '🐱 По имени питомца')
 async def search_pet_petname_handler(message: Message, state: FSMContext):
     await state.set_state(SeacrhPet.petname)
-    await message.answer('Введите имя питомца: ', reply_markup=kb.exit_search_pet)
+    await message.answer('Введите имя питомца: ', reply_markup=kb.exit_button)
 
 
 @router.message(SeacrhPet.petname)
@@ -75,15 +75,6 @@ async def show_pets_username_handler(message: Message, state: FSMContext):
     except Exception as e:
         await message.answer('Ошибка при поиске питомцев, попробуйте ещё раз позже!')
         logging.error(f'Ошибка в show_pets_by_username_handler: {e}')
-
-
-@router.callback_query(F.data == 'exit_search_pet')
-async def exit_search_pet_handler(callback: CallbackQuery, state: FSMContext):
-    try:
-        await callback.message.edit_text('Поиск питомца отменен!')
-        await state.clear()
-    except Exception as e:
-        logging.error(f'Произошла ошибка при отмене поиска питомца: {e}')
 
 
 @router.message(F.text == '⬅️ Назад')
